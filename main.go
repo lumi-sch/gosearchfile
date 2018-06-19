@@ -26,7 +26,7 @@ func main() {
 			return filepath.SkipDir
 		}
 		if regex.MatchString(info.Name()) {
-			fmt.Println(path)
+			fmt.Println(markUp(path, regex))
 		}
 		if os.Args[1] == info.Name() {
 			exact = append(exact, path)
@@ -39,8 +39,32 @@ func main() {
 		fmt.Println("-----------------------")
 		i := 0
 		for len(exact) > i {
-			fmt.Println(exact[i])
+			fmt.Println(markUp(exact[i], regex))
 			i++
 		}
 	}
+}
+
+func markUp(s string, r *regexp.Regexp) string {
+	match := r.FindAllString(filepath.Base(s), -1)
+	nomatch := r.Split(filepath.Base(s), -1)
+	result := filepath.Dir(s) + "/"
+	var in int
+	var im int
+	lastwasmatched := true
+	if r.FindIndex([]byte(filepath.Base(s)))[0] == 0 {
+		lastwasmatched = false
+	}
+	for len(match)+len(nomatch) > im+in {
+		if lastwasmatched && len(nomatch) > in {
+			result = result + nomatch[in]
+			in++
+		}
+		if !lastwasmatched && len(match) > im {
+			result = result + "\033[31;1;4m" + match[im] + "\033[0m"
+			im++
+		}
+		lastwasmatched = !lastwasmatched
+	}
+	return result
 }
